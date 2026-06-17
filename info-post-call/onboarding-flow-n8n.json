@@ -1,0 +1,582 @@
+﻿{
+  "name": "Onboarding Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Onboarding Form",
+        "formDescription": "Please fill out this form in order to onboard a new client",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Company Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Website",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -704,
+        -160
+      ],
+      "id": "80afa003-9c6c-4dbe-aa6f-0cae3a2c51f7",
+      "name": "On form submission",
+      "webhookId": "566bd3d8-1858-4bd5-8489-c9c1f651126f"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "24b6284c-21d9-81a6-91db-c67b47663883",
+          "mode": "list",
+          "cachedResultName": "hTasks",
+          "cachedResultUrl": "https://www.notion.so/24b6284c21d981a691dbc67b47663883"
+        },
+        "title": "Schedule Audit Call",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Due Date|date",
+              "date": "={{ new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }}"
+            },
+            {
+              "key": "Client|relation",
+              "relationValue": [
+                "={{ $('Add Company').item.json.id }}"
+              ]
+            },
+            {
+              "key": "Status|status",
+              "statusValue": "=Not Started"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        -448
+      ],
+      "id": "ee15206b-53d9-4aa0-907d-05d1fcc15640",
+      "name": "Audit Task",
+      "credentials": {
+        "notionApi": {
+          "id": "0oSlv1uPF7WhDUjA",
+          "name": "TH Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('On form submission').item.json['Company Name'] }} | Onboarding Folder",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "root",
+          "mode": "list",
+          "cachedResultName": "/ (Root folder)",
+          "cachedResultUrl": "https://drive.google.com/drive"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -528,
+        -160
+      ],
+      "id": "549c1c57-e26a-4c4b-897c-dbe8a3d9d257",
+      "name": "Create Onboarding Folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "IyCnDw0NHeBFP4ZO",
+          "name": "JM SOLutionss"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "share",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "permissionsUi": {
+          "permissionsValues": {
+            "role": "reader",
+            "type": "anyone"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -336,
+        -160
+      ],
+      "id": "d85be7f6-7dc0-464b-80e5-02aa3fdc80d4",
+      "name": "Share file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "IyCnDw0NHeBFP4ZO",
+          "name": "JM SOLutionss"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4e528b69-7ef5-4d03-97df-c2ed933407cc",
+              "name": "Drive Link",
+              "value": "=https://drive.google.com/drive/folders/{{ $('Create Onboarding Folder').item.json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        592,
+        -160
+      ],
+      "id": "172b4fd2-34b3-4e2c-ab8d-89f962de0650",
+      "name": "Set Drive Link"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "channel",
+        "channelId": "={{\n  (\n    ($('On form submission').item.json['Company Name'] || '') + ' channel'\n  )\n  .toLowerCase()\n  .replace(/[^a-z0-9_-]/g, '-')   // remove invalid characters\n  .replace(/-+/g, '-')            // collapse multiple dashes\n  .replace(/^-+|-+$/g, '')        // trim starting/ending dashes\n  .slice(0, 80)                   // enforce Slack max length\n}}"
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        784,
+        -160
+      ],
+      "id": "8a9fea9a-7f8b-47b4-a41c-2076218f744a",
+      "name": "Create a channel",
+      "webhookId": "f6028a2b-f61d-4742-b947-8ed7cadd778d",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "oKz1Up47M4EaqHeR",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "24b6284c-21d9-815a-b266-fa95787c4ed3",
+          "mode": "list",
+          "cachedResultName": "fClients",
+          "cachedResultUrl": "https://www.notion.so/24b6284c21d9815ab266fa95787c4ed3"
+        },
+        "title": "={{ $('On form submission').item.json['Company Name'] }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Website|url",
+              "urlValue": "={{ $('On form submission').item.json.Website }}"
+            },
+            {
+              "key": "Client Status|status",
+              "statusValue": "Pre-Onboarding"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -144,
+        -160
+      ],
+      "id": "6d9514b4-607c-48f2-b58d-25de50a766e4",
+      "name": "Add Company",
+      "credentials": {
+        "notionApi": {
+          "id": "RjqJMZIIOBeGfhP2",
+          "name": "Test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "24b6284c-21d9-8125-a4ea-dd95e14a97fb",
+          "mode": "list",
+          "cachedResultName": "Contacts",
+          "cachedResultUrl": "https://www.notion.so/24b6284c21d98125a4eadd95e14a97fb"
+        },
+        "title": "={{ $('On form submission').item.json['Full Name'] }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Clients|relation",
+              "relationValue": [
+                "={{ $json.id }}"
+              ]
+            },
+            {
+              "key": "Email|email",
+              "emailValue": "={{ $('On form submission').item.json.Email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        64,
+        -160
+      ],
+      "id": "99d0af3d-0590-4968-97d0-70e6bebe354a",
+      "name": "Add Contact",
+      "credentials": {
+        "notionApi": {
+          "id": "RjqJMZIIOBeGfhP2",
+          "name": "Test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "24b6284c-21d9-81a6-91db-c67b47663883",
+          "mode": "list",
+          "cachedResultName": "hTasks",
+          "cachedResultUrl": "https://www.notion.so/24b6284c21d981a691dbc67b47663883"
+        },
+        "title": "Set up Access",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Due Date|date",
+              "date": "={{ new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }}"
+            },
+            {
+              "key": "Client|relation",
+              "relationValue": [
+                "={{ $('Add Company').item.json.id }}"
+              ]
+            },
+            {
+              "key": "Status|status",
+              "statusValue": "=Not Started"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        -240
+      ],
+      "id": "e349f512-102f-4589-92e8-05da187a04a1",
+      "name": "Set up Access",
+      "credentials": {
+        "notionApi": {
+          "id": "0oSlv1uPF7WhDUjA",
+          "name": "TH Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "24b6284c-21d9-81a6-91db-c67b47663883",
+          "mode": "list",
+          "cachedResultName": "hTasks",
+          "cachedResultUrl": "https://www.notion.so/24b6284c21d981a691dbc67b47663883"
+        },
+        "title": "Start Implementation",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Due Date|date",
+              "date": "={{ new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }}"
+            },
+            {
+              "key": "Client|relation",
+              "relationValue": [
+                "={{ $('Add Company').item.json.id }}"
+              ]
+            },
+            {
+              "key": "Status|status",
+              "statusValue": "=Not Started"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        -48
+      ],
+      "id": "53bec922-b1dd-48b4-836b-450c032c45c6",
+      "name": "Start Implementation",
+      "credentials": {
+        "notionApi": {
+          "id": "0oSlv1uPF7WhDUjA",
+          "name": "TH Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "databaseId": {
+          "__rl": true,
+          "value": "24b6284c-21d9-81a6-91db-c67b47663883",
+          "mode": "list",
+          "cachedResultName": "hTasks",
+          "cachedResultUrl": "https://www.notion.so/24b6284c21d981a691dbc67b47663883"
+        },
+        "title": "Start Automation Structure",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Due Date|date",
+              "date": "={{ new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }}"
+            },
+            {
+              "key": "Client|relation",
+              "relationValue": [
+                "={{ $('Add Company').item.json.id }}"
+              ]
+            },
+            {
+              "key": "Status|status",
+              "statusValue": "=Not Started"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        160
+      ],
+      "id": "bc679445-0487-4433-a92a-ddb25d82eeb5",
+      "name": "Start Automation Structure",
+      "credentials": {
+        "notionApi": {
+          "id": "0oSlv1uPF7WhDUjA",
+          "name": "TH Connection"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Email }}",
+        "subject": "=Welcome aboard — here’s what’s next ",
+        "message": "=Hey {{ $('On form submission').item.json['Full Name'].split(' ')[0] }}, \n\n<br><br> \n\nSo pumped to officially kick things off with you.\n\n<br><br> \n\nI know investing in a service like this is a big decision. Our job from here is to make sure it feels like the best decision you’ve made all year.\n\n<br><br> \n\nBelow is your personal onboarding folder with everything you need to get started: \n\n<br><br> \n\n📁 Onboarding Drive Folder: {{ $('Set Drive Link').item.json['Drive Link'] }} \n\n<br><br> \n\nWe also made a Slack channel which our team is going to be shortly sending you access to (that will be the way we will communicate throughout our time together)\n\n<br><br> \n\nWe’re thrilled to have you join the JM Team and can’t wait to get started together. \n<br><br> \n\nCheers,\n\n<br> \n\nJeaviit",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        976,
+        -160
+      ],
+      "id": "c1b897cd-164f-4083-9981-03ff84b4f9b1",
+      "name": "Send Email",
+      "webhookId": "81237696-583d-410f-b927-7410d51adc77",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "x4ZppXUlfvqkHvSY",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Create Onboarding Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audit Task": {
+      "main": [
+        [
+          {
+            "node": "Set up Access",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Onboarding Folder": {
+      "main": [
+        [
+          {
+            "node": "Share file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Share file": {
+      "main": [
+        [
+          {
+            "node": "Add Company",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Drive Link": {
+      "main": [
+        [
+          {
+            "node": "Create a channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a channel": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Company": {
+      "main": [
+        [
+          {
+            "node": "Add Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Contact": {
+      "main": [
+        [
+          {
+            "node": "Audit Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Implementation": {
+      "main": [
+        [
+          {
+            "node": "Start Automation Structure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set up Access": {
+      "main": [
+        [
+          {
+            "node": "Start Implementation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Automation Structure": {
+      "main": [
+        [
+          {
+            "node": "Set Drive Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2b6e6cdf-0629-4453-ab95-f2e11d5b7d8f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "497b9f82c9e2221fea60e82fa63290386b7aadcded14b21ff31b0075b1df1efd"
+  },
+  "id": "O2u2Dblnc5r9Yg89",
+  "tags": []
+}

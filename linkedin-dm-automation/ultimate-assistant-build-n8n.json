@@ -1,0 +1,1304 @@
+﻿{
+  "name": "USB FINAL : Ultimate Assistant Build",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        -272
+      ],
+      "id": "b335eed1-72bc-437c-b1e9-de5329387781",
+      "name": "Telegram Trigger",
+      "webhookId": "4abe8d66-62dc-4e5a-9b88-84785d2dedc0",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZAcCOpM2VRg4Cppk",
+          "name": "Jeaviit Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1184,
+        48
+      ],
+      "id": "9b3c1e27-5eb2-4a38-8a15-34fb47c5b5ce",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "JW58mv7uuR54fXsx",
+          "name": "YT Aug 19th"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.voice.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1376,
+        -368
+      ],
+      "id": "49e1ae64-a6c8-4f36-8c8b-736b00d9ef8d",
+      "name": "Get a file",
+      "webhookId": "28e7a04a-f9a7-4058-99ba-0879b588138a",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZAcCOpM2VRg4Cppk",
+          "name": "Jeaviit Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1600,
+        -368
+      ],
+      "id": "887cc938-1937-462d-8c01-485441666366",
+      "name": "Transcribe a recording",
+      "credentials": {
+        "openAiApi": {
+          "id": "98wlA851ZOLwJfi2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ce23a4c4-2a3b-4247-898f-dab5eb388350",
+              "name": "text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1488,
+        -208
+      ],
+      "id": "82f7aa08-ff09-4ef8-8032-4a902aea7c61",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=# Overview\nYou are the ultimate personal assistant. Your job is to send the user's query to the correct tool. \n\n##Tools\ncontactAgent - Use this tool to take contact actions. You must use this before sending emails or creating calendar events within attendees.\nEmailAgent - Use this tool to take action in email\nCalendar Agent - Use this tool to take action in calendar. You must use the contact agent before using the calendar agent and make sure you pass through the email of the contact to the calendar agent\nContent Agent - Use this tool to generate a blog and return the full text\n\n## Rules\n- Some actions require you to look up contact information first. For the following actions, you must get contact information and send that to the agent who needs it:\n  - sending emails\n  - drafting emails\n  - creating calendar event with attendee\n- When asked to write a blog, you have to return the whole blog text to the end user\n\n## Instructions\n1) Call the necessary tools based on the user's request\n2) Use the **Think** tool to verify you took the right steps. This tool should be called every time.\n\n\n##Final Reminder\n\nHere is the current time/date: {{ $now.format('DD')}}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1840,
+        -240
+      ],
+      "id": "0e94f46b-f2f5-45ed-927f-450d54983c84",
+      "name": "AI Ultimate Assistant"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2400,
+        -240
+      ],
+      "id": "2f8f4100-df5b-4ae0-a366-b74d0bab9b0a",
+      "name": "Response",
+      "webhookId": "77e01d85-f8ed-4251-9e4e-fce78a21437c",
+      "credentials": {
+        "telegramApi": {
+          "id": "ZAcCOpM2VRg4Cppk",
+          "name": "Jeaviit Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1RNTkBJqoyQlO4gjgqC1mjHwObJ4HCy6Ni0rtTU6AFpw",
+          "mode": "list",
+          "cachedResultName": "Contacts Database USB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RNTkBJqoyQlO4gjgqC1mjHwObJ4HCy6Ni0rtTU6AFpw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RNTkBJqoyQlO4gjgqC1mjHwObJ4HCy6Ni0rtTU6AFpw/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1616,
+        352
+      ],
+      "id": "712126d1-c760-467b-b5e4-8a176428b2b3",
+      "name": "Get Contacts",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "EQZ4ODVSjcsOy7Lc",
+          "name": "Jeaviit Connection 17th August"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1RNTkBJqoyQlO4gjgqC1mjHwObJ4HCy6Ni0rtTU6AFpw",
+          "mode": "list",
+          "cachedResultName": "Contacts Database USB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RNTkBJqoyQlO4gjgqC1mjHwObJ4HCy6Ni0rtTU6AFpw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RNTkBJqoyQlO4gjgqC1mjHwObJ4HCy6Ni0rtTU6AFpw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Name__using_to_match_', `this is the name of the person`, 'string') }}",
+            "Email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email', `this is the email of the person`, 'string') }}",
+            "Phone": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Phone', `this is the phone of the person`, 'string') }}"
+          },
+          "matchingColumns": [
+            "Name"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1744,
+        352
+      ],
+      "id": "5fd9916f-fc39-46cc-8d38-9e2ca76b95d3",
+      "name": "Add or Update Contacts",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "EQZ4ODVSjcsOy7Lc",
+          "name": "Jeaviit Connection 17th August"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1440,
+        352
+      ],
+      "id": "f07fc8bb-d46c-44d2-a75e-003fd6395e88",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "98wlA851ZOLwJfi2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        2000,
+        352
+      ],
+      "id": "8d5ff800-aea6-4815-bb8c-dc991a57abd7",
+      "name": "Send Email",
+      "webhookId": "a1ca0ee1-bfc6-495d-930e-0109b6074344",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SxAixly4TEOkIP6d",
+          "name": "Test Jm Solutionss"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1872,
+        352
+      ],
+      "id": "793b01fa-2c65-4c91-9faf-9c567b819b45",
+      "name": "OpenAI brain",
+      "credentials": {
+        "openAiApi": {
+          "id": "98wlA851ZOLwJfi2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "simple": false,
+        "filters": {
+          "sender": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Sender', `this can be a sender's name or email address`, 'string') }}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        2128,
+        352
+      ],
+      "id": "963ebb0c-975d-4855-8214-62b201fbd5b0",
+      "name": "Get Emails",
+      "webhookId": "8180fa07-8969-4fa3-a0a5-62ef5200cb5e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "i1qNK5slzHdL8jy9",
+          "name": "JM Solutionss Email"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        2256,
+        352
+      ],
+      "id": "fd45718a-f94d-465c-b63c-cefda0d379ce",
+      "name": "Email Reply",
+      "webhookId": "356cb16d-1904-4ad7-b799-a583fbd02557",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SxAixly4TEOkIP6d",
+          "name": "Test Jm Solutionss"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailType": "html",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To_Email', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        2000,
+        512
+      ],
+      "id": "d068f3de-135e-4eff-bd3b-ac6d1930cacb",
+      "name": "Create Draft",
+      "webhookId": "106153d2-908f-4ae2-81af-18de47718385",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SxAixly4TEOkIP6d",
+          "name": "Test Jm Solutionss"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        2128,
+        512
+      ],
+      "id": "87594879-6da4-4f38-85bf-5764079d240b",
+      "name": "Get Labels",
+      "webhookId": "483de0b7-6415-4cd9-aae4-3f9f51efe9f6",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SxAixly4TEOkIP6d",
+          "name": "Test Jm Solutionss"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message_ID', ``, 'string') }}",
+        "labelIds": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Label_Names_or_IDs', `this is the label name or ID`, 'string') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        2256,
+        512
+      ],
+      "id": "2be5efbc-013a-4eba-a3e5-873a2d54f9bb",
+      "name": "Label Emails",
+      "webhookId": "9288b218-3125-49ed-bee0-191f9b5c2f1e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SxAixly4TEOkIP6d",
+          "name": "Test Jm Solutionss"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "jeaviitbhaat@gmail.com",
+          "mode": "list",
+          "cachedResultName": "jeaviitbhaat@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', `this is the email address of the attendee`, 'string') }}"
+          ],
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2544,
+        352
+      ],
+      "id": "64bbe3e0-096c-48a0-9e11-4f4416961bf9",
+      "name": "Create Event with Attendee",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "4kWF8E1mZ3fWFpsi",
+          "name": "Jeaviit Account | 17th Aug"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "jeaviitbhaat@gmail.com",
+          "mode": "list",
+          "cachedResultName": "jeaviitbhaat@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "attendees": [],
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2672,
+        352
+      ],
+      "id": "13daa52d-93b6-488a-9d2c-bd0391a8afcf",
+      "name": "Create Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "4kWF8E1mZ3fWFpsi",
+          "name": "Jeaviit Account | 17th Aug"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "jeaviitbhaat@gmail.com",
+          "mode": "list",
+          "cachedResultName": "jeaviitbhaat@gmail.com"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2416,
+        512
+      ],
+      "id": "9cb9c99d-c28a-405c-b940-44be37c7b733",
+      "name": "Get Events",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "4kWF8E1mZ3fWFpsi",
+          "name": "Jeaviit Account | 17th Aug"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "jeaviitbhaat@gmail.com",
+          "mode": "list",
+          "cachedResultName": "jeaviitbhaat@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2544,
+        512
+      ],
+      "id": "03560e2e-ceed-4881-bf26-4d07db7b9432",
+      "name": "Delete Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "4kWF8E1mZ3fWFpsi",
+          "name": "Jeaviit Account | 17th Aug"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "jeaviitbhaat@gmail.com",
+          "mode": "list",
+          "cachedResultName": "jeaviitbhaat@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {
+          "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+          "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        2672,
+        512
+      ],
+      "id": "e193a670-f992-4f81-b99b-97f9e5dd61d8",
+      "name": "Update Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "4kWF8E1mZ3fWFpsi",
+          "name": "Jeaviit Account | 17th Aug"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2368,
+        320
+      ],
+      "id": "af68a9c5-434a-4173-b4f4-86422e3f12c0",
+      "name": "OpenAI brain1",
+      "credentials": {
+        "openAiApi": {
+          "id": "98wlA851ZOLwJfi2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-20250514",
+          "cachedResultName": "Claude 4 Sonnet"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [
+        2832,
+        320
+      ],
+      "id": "d782f5d3-041e-4d6b-98c6-b31200fb6828",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "ghatRdM2P5QhqFdI",
+          "name": "Jeaviit Connection 2 | 19th Aug"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this tool to create a blog post",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=#Overview\nYou are an expert blog writer. Use the appropiate tool to write a blog post\n\n##Tool\nResearch_perplexity - Use this to search the internet before writing your blog\n\n##RULES\n- Your blog post should be less than 500 words\n- Output the whole blog text\n\n\n##Final Reminder\n\nHere is the current time/date: {{ $now.format('DD')}}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2880,
+        96
+      ],
+      "id": "7a3772fa-5fba-4e9e-924f-1c0c1bdec9e4",
+      "name": "Content Creation Agent"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this tool to take action in calendar",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=#Overview\nYou are a calendar assistant. You have tools to take action in calendar.\n\n##Tools\nCreate Event - Use this to create an event when there will not be an attendee\nCreate Event with Attendee - Use this to create an event when there will be an attendee\nGet Events - USe this to get events. You must ue this before updating or deleting events. \nDelete Events - Use this to delete events\nUpdate Events - Use this to update events\n\n\n##Final Reminder\n\nHere is the current time/date: {{ $now.format('DD')}}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2432,
+        112
+      ],
+      "id": "2cf1da48-b29b-46b3-ad2b-0873ad140760",
+      "name": "Calendar agent"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this tool to take action in email",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=#Overview\nYou are a email assistant. You have tools to take action in email.\n\n##Tools\nSend Email - Use this to send an email. Make sure we are passing a valid email to the \"To\" Variable\nGet Emails - Use this to get emails. Uou must use this before creating an email reply\nEmail Rpely - Use this to reply to emails\nCreate Draft - Use this to create a draft\nGet Labels - Use this to get lables.\nLabel Emails - Use ths to label emails. Before you label them, you must use Get Labels in order to get the label ID and you must use Get Emails to get the message ID\n\n#RULES\n- Please write the emails in HTML format\n\n##Final Reminder\n\nHere is the current time/date: {{ $now.format('DD')}}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        2000,
+        112
+      ],
+      "id": "13e0ca71-105f-49fd-9862-e86e1be95a68",
+      "name": "Email Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1392,
+        48
+      ],
+      "id": "7c0c7d86-076e-40a3-a643-d42e024621c4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1.1,
+      "position": [
+        1280,
+        48
+      ],
+      "id": "ba57fe81-20f8-4599-8743-6b4b69d49ef8",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Call this tool to take action within the contact database",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=#Overview\nYou are a contact manager. You have tools to take action within the contact database.\n\n##Tools\nGet Contact -  Use this to get contact information like email address or phone number.\nAdd or Update Contact - Use this to add a new contact to the database or update an existing contact\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        112
+      ],
+      "id": "32828014-f485-4fe3-88f0-56c6518ea1b4",
+      "name": "Contact Agent"
+    },
+    {
+      "parameters": {
+        "model": "sonar-pro",
+        "messages": {
+          "message": [
+            {
+              "content": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('message0_Text', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Maximum_Number_of_Tokens', ``, 'number') }}"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.perplexityTool",
+      "typeVersion": 1,
+      "position": [
+        3088,
+        320
+      ],
+      "id": "8b61c269-e293-4314-8ff7-6a225a1010ae",
+      "name": "Research_perplexity",
+      "credentials": {
+        "perplexityApi": {
+          "id": "GwHhFezSHSoRgFwr",
+          "name": "Jeaviit Connection | 19th August"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Input\nThis is the client of the company. It's what tells the company what it wants",
+        "height": 384,
+        "width": 880
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        848,
+        -448
+      ],
+      "typeVersion": 1,
+      "id": "8adaec71-7295-4309-b46e-8c5147e7ce9c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Memory + Brain\nHere we set up the LLM \nthat the AI Agent uses \nto think + the memory to \nremember our previous \nconversations",
+        "height": 256,
+        "width": 544,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        976,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "3045099a-7106-4610-9413-d96222d83671",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Output\nOutput response to the end useer",
+        "height": 240,
+        "width": 368,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2240,
+        -336
+      ],
+      "typeVersion": 1,
+      "id": "fc8878b8-67a8-45d8-b121-3d7331b08de4",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## AI Agent\nThis is the CEO of the company. It makes decisions and chooses which tools to call and what to do",
+        "height": 256,
+        "width": 512,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1728,
+        -352
+      ],
+      "typeVersion": 1,
+      "id": "73ecfa09-5fc3-4d78-bf94-61d4175f96a4",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Main AI Agent Tools \nThese are the \"Head of X\" (eg. Head of Marketing) who have the responsability to execute a task and use their team to do it",
+        "height": 208,
+        "width": 1664,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1536,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "2b8f6cf5-cda7-4560-a19f-c300d0bbc998",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Tools\nThese are the employees of a company. They are what ACTUALLY do the task and take action based on the information they were given",
+        "height": 416,
+        "width": 1824,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1392,
+        288
+      ],
+      "typeVersion": 1,
+      "id": "a5482591-8aeb-4d3b-b331-0669d920e782",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d6d1b016-695b-4e10-be8a-cf0953805548",
+                    "leftValue": "={{ $json.message.voice.mime_type }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "39f96015-aacd-4761-af91-0a804a72ec3b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1152,
+        -272
+      ],
+      "id": "6271ba5c-2818-4088-8b77-a3abcddf382e",
+      "name": "Text/Audio"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Text/Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Ultimate Assistant",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "AI Ultimate Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Ultimate Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Ultimate Assistant": {
+      "main": [
+        [
+          {
+            "node": "Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Contacts": {
+      "ai_tool": [
+        [
+          {
+            "node": "Contact Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add or Update Contacts": {
+      "ai_tool": [
+        [
+          {
+            "node": "Contact Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Contact Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Emails": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Reply": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Draft": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Labels": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Label Emails": {
+      "ai_tool": [
+        [
+          {
+            "node": "Email Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event with Attendee": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Events": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI brain1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Calendar agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Content Creation Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Creation Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Ultimate Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Ultimate Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Ultimate Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Ultimate Assistant",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Ultimate Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Agent": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Ultimate Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research_perplexity": {
+      "ai_tool": [
+        [
+          {
+            "node": "Content Creation Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text/Audio": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d7bff037-3cfb-423c-bb64-9c8f70ad4499",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "497b9f82c9e2221fea60e82fa63290386b7aadcded14b21ff31b0075b1df1efd"
+  },
+  "id": "KitG8RE162Kwzs3x",
+  "tags": []
+}
